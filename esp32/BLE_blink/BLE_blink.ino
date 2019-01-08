@@ -43,6 +43,8 @@ class MyCallbacks: public BLECharacteristicCallbacks {
           stop();
         } else if (value == "clear") {
           clear();
+        } else if (value == "light") {
+          light();
         }
 
         Serial.println();
@@ -92,14 +94,26 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
     void stop() {
 
-      clear();
-
       for (int i = 0; i < NUMPIXELS ; i++) {
 
         // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
         pixels.setPixelColor(i, pixels.Color(255, 0, 0));
       }
       pixels.show(); // This sends the updated pixel color to the hardware.
+      delay(delayval);   
+      pixels.show();
+    }
+
+    void light() {
+
+      for (int i = 0; i < NUMPIXELS ; i++) {
+
+        // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+        pixels.setPixelColor(i, pixels.Color(20, 0, 0));
+      }
+      pixels.show(); // This sends the updated pixel color to the hardware.
+      delay(delayval);   
+      pixels.show();
     }
 
     void clear() {      
@@ -108,7 +122,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       }
       pixels.show();
       pixels.setPixelColor(0, pixels.Color(0, 0, 0));   
-      delay(10);   
+      delay(delayval);   
       pixels.show();
       
     }
