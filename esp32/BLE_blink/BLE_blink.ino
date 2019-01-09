@@ -1,8 +1,3 @@
-/*
-    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleWrite.cpp
-    Ported to Arduino ESP32 by Evandro Copercini
-*/
-
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -37,10 +32,8 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       std::string value = pCharacteristic->getValue();
 
       if (value.length() > 0) {
-        Serial.println("*********");
-        Serial.print("New value: ");
-        for (int i = 0; i < value.length(); i++)
-          Serial.print(value[i]);
+        //for (int i = 0; i < value.length(); i++)
+        //  Serial.print(value[i]);
         if (value == "left") {
           left();
         } else if (value == "right") {
@@ -52,9 +45,6 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         } else if (value == "light") {
           light();
         }
-
-        Serial.println();
-        Serial.println("*********");
       }
     }
 
@@ -127,15 +117,7 @@ void setup() {
   strip.Begin();
   strip.Show();
 
-  Serial.begin(115200);
-
-  Serial.println("1- Download and install an BLE scanner app in your phone");
-  Serial.println("2- Scan for BLE devices in the app");
-  Serial.println("3- Connect to MyESP32");
-  Serial.println("4- Go to CUSTOM CHARACTERISTIC in CUSTOM SERVICE and write something");
-  Serial.println("5- See the magic =)");
-
-  BLEDevice::init("MyESP32");
+  BLEDevice::init("Blinker");
   BLEServer *pServer = BLEDevice::createServer();
 
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -149,7 +131,7 @@ void setup() {
   MyCallbacks *callbacks = new MyCallbacks();
   pCharacteristic->setCallbacks(callbacks);
 
-  pCharacteristic->setValue("Hello World");
+  pCharacteristic->setValue("light");
   pService->start();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
