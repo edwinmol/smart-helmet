@@ -6,18 +6,24 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-#include <Adafruit_NeoPixel.h>
+#include <NeoPixelBus.h>
 
-// Which pin on the ESP32 is connected to the NeoPixels?
-#define PIN            15
-#define NUMPIXELS      22
+//#include <Adafruit_NeoPixel.h> --> This lib does not work, problems with timing on ESP32
 
+const uint16_t PixelCount = 22; // this example assumes 4 pixels, making it smaller will cause a failure
+const uint8_t PixelPin = 15;  // make sure to set this to the correct pin, ignored for Esp8266
 int delayval = 75; // delay
 
-// When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
-// Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
-// example for more information on possible values.
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+#define colorSaturation 255
+
+// three element pixels, in different order and speeds
+NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+
+RgbColor red(colorSaturation, 0, 0);
+RgbColor lightred(20, 0, 0);
+RgbColor orange(255, 140, 0);
+RgbColor white(colorSaturation);
+RgbColor black(0);
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -57,13 +63,11 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       clear();
       for (int t = 0; t < 5; t++) {
 
-        for (int i = 11; i < NUMPIXELS; i++) {
+        for (int i = 11; i < PixelCount; i++) {
 
           // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-          pixels.setPixelColor(i, pixels.Color(255, 140, 0)); // orange.
-
-          pixels.show(); // This sends the updated pixel color to the hardware.
-
+          strip.SetPixelColor(i, orange); // orange.
+          strip.Show();
           delay(delayval); // Delay for a period of time (in milliseconds).
 
         }
@@ -80,12 +84,9 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         for (int i = 10; i >= 0; i--) {
 
           // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-          pixels.setPixelColor(i, pixels.Color(255, 140, 0)); // orange.
-
-          pixels.show(); // This sends the updated pixel color to the hardware.
-
+          strip.SetPixelColor(i, orange); // orange.
+          strip.Show();
           delay(delayval); // Delay for a period of time (in milliseconds).
-
         }
         clear();
         delay(delayval);
@@ -94,43 +95,37 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
     void stop() {
 
-      for (int i = 0; i < NUMPIXELS ; i++) {
+      for (int i = 0; i < PixelCount ; i++) {
 
         // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-        pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+        strip.SetPixelColor(i, red);
       }
-      pixels.show(); // This sends the updated pixel color to the hardware.
-      delay(delayval);   
-      pixels.show();
+      strip.Show();
     }
 
     void light() {
 
-      for (int i = 0; i < NUMPIXELS ; i++) {
+      for (int i = 0; i < PixelCount ; i++) {
 
         // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-        pixels.setPixelColor(i, pixels.Color(20, 0, 0));
+        strip.SetPixelColor(i, lightred);
       }
-      pixels.show(); // This sends the updated pixel color to the hardware.
-      delay(delayval);   
-      pixels.show();
+      strip.Show();
     }
 
-    void clear() {      
-      for (int i = 0; i < NUMPIXELS; i++) {
-        pixels.setPixelColor(i, pixels.Color(0, 0, 0));                
+  public : void clear() {
+      for (int i = 0; i < PixelCount; i++) {
+        strip.SetPixelColor(i, black);
       }
-      pixels.show();
-      pixels.setPixelColor(0, pixels.Color(0, 0, 0));   
-      delay(delayval);   
-      pixels.show();
-      
+      strip.Show();
     }
+
 };
 
 void setup() {
-  pixels.begin(); // This initializes the NeoPixel library.
-  pixels.show(); // Initialize all pixels to 'off'
+  // this resets all the neopixels to an off state
+  strip.Begin();
+  strip.Show();
 
   Serial.begin(115200);
 
@@ -151,13 +146,16 @@ void setup() {
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
 
-  pCharacteristic->setCallbacks(new MyCallbacks());
+  MyCallbacks *callbacks = new MyCallbacks();
+  pCharacteristic->setCallbacks(callbacks);
 
   pCharacteristic->setValue("Hello World");
   pService->start();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->start();
+
+  callbacks->clear();
 }
 
 void loop() {
