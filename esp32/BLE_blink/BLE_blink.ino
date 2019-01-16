@@ -8,6 +8,7 @@
 const uint16_t PixelCount = 22; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = 15;  // make sure to set this to the correct pin, ignored for Esp8266
 int delayval = 75; // delay
+int shortdelayval = 50; // delay
 
 #define colorSaturation 255
 
@@ -23,18 +24,19 @@ RgbColor black(0);
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define SERVICE_UUID        "051cf1f1-3f95-4068-8150-80ffbc111bd4"
+#define CHARACTERISTIC_UUID "e2532f4c-b771-4db3-a5cf-1eead92d026f"
 
 
 class MyCallbacks: public BLECharacteristicCallbacks {
+    
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
 
       if (value.length() > 0) {
         //for (int i = 0; i < value.length(); i++)
         //  Serial.print(value[i]);
-        if (value == "left") {
+        if (value == "left") {          
           left();
         } else if (value == "right") {
           right();
@@ -44,6 +46,8 @@ class MyCallbacks: public BLECharacteristicCallbacks {
           clear();
         } else if (value == "light") {
           light();
+        } else if (value == "nr") {
+          knightRider();
         }
       }
     }
@@ -51,7 +55,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     void left() {
 
       clear();
-      for (int t = 0; t < 5; t++) {
+      for (int t = 0; t < 7; t++) {
 
         for (int i = 11; i < PixelCount; i++) {
 
@@ -69,7 +73,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     void right() {
 
       clear();
-      for (int t = 0; t < 5; t++) {
+      for (int t = 0; t < 7; t++) {
 
         for (int i = 10; i >= 0; i--) {
 
@@ -103,7 +107,37 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       strip.Show();
     }
 
-  public : void clear() {
+    void knightRider() {
+      clear();
+      for (int t = 0; t < 10; t++)  {
+        for (int i = 10; i >= 0; i--) {
+          strip.SetPixelColor(i, red); // orange.
+          strip.SetPixelColor(i+1, red); // orange.
+          strip.SetPixelColor(i+2, red); // orange.
+          strip.Show();
+          delay(shortdelayval); // Delay for a period of time (in milliseconds).
+          clear();
+        }
+        for (int i = 1; i <= 19; i++) {
+          strip.SetPixelColor(i, red); // orange.
+          strip.SetPixelColor(i+1, red); // orange.
+          strip.SetPixelColor(i+2, red); // orange.
+          strip.Show();
+          delay(shortdelayval); // Delay for a period of time (in milliseconds).
+          clear();
+        }
+        for (int i = 18; i >= 11; i--) {
+          strip.SetPixelColor(i, red); // orange.
+          strip.SetPixelColor(i+1, red); // orange.
+          strip.SetPixelColor(i+2, red); // orange.
+          strip.Show();
+          delay(shortdelayval); // Delay for a period of time (in milliseconds).
+          clear();
+        }
+      }
+    }
+    
+    public : void clear() {
       for (int i = 0; i < PixelCount; i++) {
         strip.SetPixelColor(i, black);
       }
